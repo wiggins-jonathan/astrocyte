@@ -12,7 +12,7 @@ func NewClient() *clientAPI {
 }
 
 func (c *clientAPI) Register(mux *http.ServeMux) {
-	mux.HandleFunc("/.well-known/matrix/client", WellKnownClientHandler)
+	mux.HandleFunc("GET /.well-known/matrix/client", WellKnownClientHandler)
 }
 
 func WellKnownClientHandler(w http.ResponseWriter, r *http.Request) {

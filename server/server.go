@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"astrocyte/server/api"
+	mw "astrocyte/server/middleware"
 )
 
 type ServerOption func(*server)
@@ -38,9 +39,12 @@ func (s *server) Serve() error {
 		api.Register(mux)
 	}
 
+	// set global middleware
+	muxWithMiddleware := mw.SetHeader("Content-Type", "application/json")(mux)
+
 	port := fmt.Sprintf(":%d", s.Port)
 	fmt.Printf("Server listening at http://localhost%s - Ctrl+c to quit.\n", port)
-	if err := http.ListenAndServe(port, mux); err != nil {
+	if err := http.ListenAndServe(port, muxWithMiddleware); err != nil {
 		return fmt.Errorf("Failed to start server: %w", err)
 	}
 

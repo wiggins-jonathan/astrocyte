@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"astrocyte/server/api"
@@ -11,8 +12,8 @@ import (
 type ServerOption func(*server)
 
 type server struct {
-	Port  int
-	Debug bool
+	Port   int
+	Logger *slog.Logger
 }
 
 // NewServer returns a server with adjustable defaults
@@ -58,9 +59,9 @@ func WithPort(port int) ServerOption {
 	}
 }
 
-// WithDebug is a helper function that turns on debug mode
-func WithDebug(debug bool) ServerOption {
+// WithLogger is a helper function that sets up slog
+func WithLogger(logger *slog.Logger) ServerOption {
 	return func(s *server) {
-		s.Debug = debug
+		s.Logger = logger
 	}
 }

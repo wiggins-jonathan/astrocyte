@@ -1,12 +1,13 @@
 package main
 
-import "astrocyte/cmd"
+import (
+	"log"
 
-var (
-	version = "development"
-	debug   bool
+	"astrocyte/cmd"
 )
 
 func main() {
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }

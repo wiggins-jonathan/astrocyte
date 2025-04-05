@@ -7,18 +7,18 @@ import (
 )
 
 type logHandler struct {
-	HandlerOptions slog.HandlerOptions
-	Output         io.Writer
-	Format         string
+	handlerOptions slog.HandlerOptions
+	output         io.Writer
+	format         string
 }
 
 type LoggerOption func(*logHandler)
 
 func NewLogger(options ...LoggerOption) *slog.Logger {
 	h := &logHandler{
-		Output:         os.Stdout,
-		Format:         "text",
-		HandlerOptions: slog.HandlerOptions{Level: slog.LevelInfo},
+		output:         os.Stdout,
+		format:         "text",
+		handlerOptions: slog.HandlerOptions{Level: slog.LevelInfo},
 	}
 
 	for _, option := range options {
@@ -26,11 +26,11 @@ func NewLogger(options ...LoggerOption) *slog.Logger {
 	}
 
 	var handler slog.Handler
-	switch h.Format {
+	switch h.format {
 	case "json":
-		handler = slog.NewJSONHandler(h.Output, &h.HandlerOptions)
+		handler = slog.NewJSONHandler(h.output, &h.handlerOptions)
 	default:
-		handler = slog.NewTextHandler(h.Output, &h.HandlerOptions)
+		handler = slog.NewTextHandler(h.output, &h.handlerOptions)
 	}
 
 	return slog.New(handler)
@@ -40,27 +40,27 @@ func WithLogLevel(level string) LoggerOption {
 	return func(h *logHandler) {
 		switch level {
 		case "debug":
-			h.HandlerOptions.Level = slog.LevelDebug
+			h.handlerOptions.Level = slog.LevelDebug
 		case "info":
-			h.HandlerOptions.Level = slog.LevelInfo
+			h.handlerOptions.Level = slog.LevelInfo
 		case "warn":
-			h.HandlerOptions.Level = slog.LevelWarn
+			h.handlerOptions.Level = slog.LevelWarn
 		case "error":
-			h.HandlerOptions.Level = slog.LevelError
+			h.handlerOptions.Level = slog.LevelError
 		default:
-			h.HandlerOptions.Level = slog.LevelInfo
+			h.handlerOptions.Level = slog.LevelInfo
 		}
 	}
 }
 
 func WithOutput(w io.Writer) LoggerOption {
 	return func(h *logHandler) {
-		h.Output = w
+		h.output = w
 	}
 }
 
 func WithFormat(format string) LoggerOption {
 	return func(h *logHandler) {
-		h.Format = format
+		h.format = format
 	}
 }

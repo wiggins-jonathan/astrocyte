@@ -45,7 +45,7 @@ func NewConfig(options ...ConfigOption) (*viper.Viper, error) {
 
 	if err := v.ReadInConfig(); err != nil { // read config file
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return nil, fmt.Errorf("Error reading config file: %s: %w", configHome, err)
+			return nil, fmt.Errorf("Error reading config file at '%s': %w", v.ConfigFileUsed(), err)
 		}
 	}
 

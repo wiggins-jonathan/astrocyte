@@ -11,6 +11,7 @@ import (
 
 type ConfigOption func(*viper.Viper) error
 
+// NewConfig creates config with adjustable defaults
 func NewConfig(options ...ConfigOption) (*viper.Viper, error) {
 	v := viper.New()
 
@@ -51,6 +52,7 @@ func NewConfig(options ...ConfigOption) (*viper.Viper, error) {
 	return v, nil
 }
 
+// WithConfig allows the default file path to be overwritten with a custom path
 func WithConfigPath(configPath string) ConfigOption {
 	return func(v *viper.Viper) error {
 		if configPath != "" {

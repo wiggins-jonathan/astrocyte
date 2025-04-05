@@ -11,6 +11,8 @@ import (
 
 var version = "development"
 
+// NewRootCmd creates the root command for the CLI & binds global &  persistent
+// flags inherited by all subcommands
 func NewRootCmd(v *viper.Viper) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:     "astrocyte",
@@ -25,6 +27,7 @@ func NewRootCmd(v *viper.Viper) *cobra.Command {
 	return rootCmd
 }
 
+// Entrypoint for the CLI. Bootstraps config, logger, & registers subcommands
 func Execute() error {
 	cfg, err := NewConfig()
 	if err != nil {

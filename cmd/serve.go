@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// NewServeCmd creates the serve cmd for the CLI, binds its flags, & starts the
+// server
 func NewServeCmd(v *viper.Viper, l *slog.Logger) *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:     "serve",

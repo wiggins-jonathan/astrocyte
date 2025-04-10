@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"astrocyte/server/api"
 	mw "astrocyte/server/middleware"
@@ -18,7 +19,10 @@ type server struct {
 
 // NewServer returns a server with adjustable defaults
 func NewServer(options ...ServerOption) *server {
-	server := &server{Port: 8080}
+	handlerOptions := &slog.HandlerOptions{Level: slog.LevelInfo}
+	textHandler := slog.NewTextHandler(os.Stdout, handlerOptions)
+
+	server := &server{Port: 8080, Logger: slog.New(textHandler)}
 
 	for _, option := range options {
 		option(server)
@@ -41,7 +45,15 @@ func (s *server) Serve() error {
 	}
 
 	// set global middleware
-	muxWithMiddleware := mw.SetHeader("Content-Type", "application/json")(mux)
+	middlewares := []mw.Middleware{
+		mw.SetHeader("Content-Type", "application/json"),
+		mw.RequestLogging(s.Logger),
+	}
+
+	muxWithMiddleware := http.Handler(mux) // cast mux to http.Handler
+	for _, middleware := range middlewares {
+		muxWithMiddleware = middleware(muxWithMiddleware)
+	}
 
 	port := fmt.Sprintf(":%d", s.Port)
 	fmt.Printf("Server listening at http://localhost%s - Ctrl+c to quit.\n", port)

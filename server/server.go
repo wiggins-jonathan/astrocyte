@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 
 	"astrocyte/server/api"
 	mw "astrocyte/server/middleware"
@@ -19,18 +18,9 @@ type server struct {
 
 type ServerOption func(*server)
 
-// NewServer returns a server with adjustable defaults
+// NewServer returns a new server with optional functional configuration
 func NewServer(options ...ServerOption) *server {
-	handlerOptions := &slog.HandlerOptions{Level: slog.LevelInfo}
-	textHandler := slog.NewTextHandler(os.Stdout, handlerOptions)
-
-	baseURL, _ := url.Parse("matrix.org")
-
-	server := &server{
-		Port:    8080,
-		Logger:  slog.New(textHandler),
-		BaseURL: baseURL,
-	}
+	server := &server{}
 
 	for _, option := range options {
 		option(server)

@@ -11,7 +11,7 @@ func NewPushAPI() *pushAPI {
 	return &pushAPI{}
 }
 
-func (p *pushAPI) Register(mux *http.ServeMux) {
+func (p *pushAPI) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /_matrix/push/v1/notify", PushGatewayHandler)
 }
 

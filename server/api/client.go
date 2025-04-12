@@ -22,7 +22,7 @@ func NewClient(options ...ClientOption) *clientAPI {
 	return client
 }
 
-func (c *clientAPI) Register(mux *http.ServeMux) {
+func (c *clientAPI) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /.well-known/matrix/client", c.WellKnownClientHandler)
 }
 

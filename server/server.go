@@ -49,7 +49,7 @@ func (s *server) Serve() error {
 	}
 
 	for _, api := range apis {
-		api.Register(mux)
+		api.RegisterRoutes(mux)
 	}
 
 	// set global middleware

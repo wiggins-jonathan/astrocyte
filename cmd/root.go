@@ -13,7 +13,7 @@ import (
 
 var version = "development"
 
-// NewRootCmd creates the root command for the CLI & binds global &  persistent
+// NewRootCmd creates the root command for the CLI & binds global & persistent
 // flags inherited by all subcommands
 func NewRootCmd(v *viper.Viper) *cobra.Command {
 	rootCmd := &cobra.Command{

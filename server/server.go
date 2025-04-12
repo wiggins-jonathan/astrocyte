@@ -4,25 +4,33 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 
 	"astrocyte/server/api"
 	mw "astrocyte/server/middleware"
 )
 
-type ServerOption func(*server)
-
 type server struct {
-	Port   int
-	Logger *slog.Logger
+	Port    int
+	Logger  *slog.Logger
+	BaseURL *url.URL
 }
+
+type ServerOption func(*server)
 
 // NewServer returns a server with adjustable defaults
 func NewServer(options ...ServerOption) *server {
 	handlerOptions := &slog.HandlerOptions{Level: slog.LevelInfo}
 	textHandler := slog.NewTextHandler(os.Stdout, handlerOptions)
 
-	server := &server{Port: 8080, Logger: slog.New(textHandler)}
+	baseURL, _ := url.Parse("matrix.org")
+
+	server := &server{
+		Port:    8080,
+		Logger:  slog.New(textHandler),
+		BaseURL: baseURL,
+	}
 
 	for _, option := range options {
 		option(server)
@@ -36,7 +44,7 @@ func (s *server) Serve() error {
 	mux := http.NewServeMux()
 
 	apis := []api.API{
-		api.NewClient(),
+		api.NewClient(api.WithBaseURL(s.BaseURL)),
 		api.NewPushAPI(),
 	}
 
@@ -75,5 +83,12 @@ func WithPort(port int) ServerOption {
 func WithLogger(logger *slog.Logger) ServerOption {
 	return func(s *server) {
 		s.Logger = logger
+	}
+}
+
+// WithBaseURL is a helper function that changes the default BaseURL
+func WithBaseURL(baseURL *url.URL) ServerOption {
+	return func(s *server) {
+		s.BaseURL = baseURL
 	}
 }

@@ -3,19 +3,30 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 )
 
-type clientAPI struct{}
+type clientAPI struct {
+	BaseURL *url.URL
+}
 
-func NewClient() *clientAPI {
-	return &clientAPI{}
+type ClientOption func(*clientAPI)
+
+func NewClient(options ...ClientOption) *clientAPI {
+	client := &clientAPI{}
+
+	for _, option := range options {
+		option(client)
+	}
+
+	return client
 }
 
 func (c *clientAPI) Register(mux *http.ServeMux) {
-	mux.HandleFunc("GET /.well-known/matrix/client", WellKnownClientHandler)
+	mux.HandleFunc("GET /.well-known/matrix/client", c.WellKnownClientHandler)
 }
 
-func WellKnownClientHandler(w http.ResponseWriter, r *http.Request) {
+func (c *clientAPI) WellKnownClientHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	type serverInfo struct {
@@ -28,9 +39,15 @@ func WellKnownClientHandler(w http.ResponseWriter, r *http.Request) {
 		CustomProps    map[string]any `json:"-"`
 	}{
 		HomeServer: serverInfo{
-			BaseURL: "matrix.org",
+			BaseURL: c.BaseURL.Path,
 		},
 	}
 
 	json.NewEncoder(w).Encode(response)
+}
+
+func WithBaseURL(baseURL *url.URL) ClientOption {
+	return func(c *clientAPI) {
+		c.BaseURL = baseURL
+	}
 }

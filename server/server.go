@@ -54,7 +54,7 @@ func (s *server) Serve() error {
 	}
 
 	port := fmt.Sprintf(":%d", s.Port)
-	fmt.Printf("Server listening at http://localhost%s - Ctrl+c to quit.\n", port)
+	s.Logger.Info("Server listening", "host", "http://localhost", "port", s.Port)
 	if err := http.ListenAndServe(port, muxWithMiddleware); err != nil {
 		return fmt.Errorf("Failed to start server: %w", err)
 	}

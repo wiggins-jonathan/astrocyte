@@ -44,8 +44,9 @@ func (s *server) Serve() error {
 
 	// set global middleware
 	middlewares := []mw.Middleware{
-		mw.SetHeader("Content-Type", "application/json"),
+		mw.ResponseLogging(s.Logger),
 		mw.RequestLogging(s.Logger),
+		mw.SetHeader("Content-Type", "application/json"),
 	}
 
 	muxWithMiddleware := http.Handler(mux) // cast mux to http.Handler

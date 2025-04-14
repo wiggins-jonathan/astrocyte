@@ -24,6 +24,7 @@ func NewClient(options ...ClientOption) *clientAPI {
 
 func (c *clientAPI) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /.well-known/matrix/client", c.WellKnownClientHandler)
+	mux.HandleFunc("GET /_matrix/client/versions", c.VersionsHandler)
 }
 
 func (c *clientAPI) WellKnownClientHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +44,26 @@ func (c *clientAPI) WellKnownClientHandler(w http.ResponseWriter, r *http.Reques
 		},
 	}
 
+	json.NewEncoder(w).Encode(response)
+}
+
+func (c *clientAPI) VersionsHandler(w http.ResponseWriter, r *http.Request) {
+	// the versions endpoint has different behavior depending on if we are
+	// authenticated or not. Add auth stuff later
+
+	w.WriteHeader(http.StatusOK)
+
+	versions := []string{"v1.14"}
+	response := struct {
+		Versions         []string        `json:"versions"`
+		UnstableFeatures map[string]bool `json:"unstable_features,omitempty"`
+	}{
+		Versions: versions,
+	}
+
+	// json.Encode returns an optional error. We should handle that error here
+	// & in WellKnownClientHandler. To do this, we may have to pass in our
+	// logger from the server struct
 	json.NewEncoder(w).Encode(response)
 }
 

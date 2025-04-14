@@ -47,6 +47,7 @@ func (c *clientAPI) WellKnownClientHandler(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(response)
 }
 
+// https://spec.matrix.org/v1.14/client-server-api/#get_matrixclientversions
 func (c *clientAPI) VersionsHandler(w http.ResponseWriter, r *http.Request) {
 	// the versions endpoint has different behavior depending on if we are
 	// authenticated or not. Add auth stuff later

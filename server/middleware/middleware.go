@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"bytes"
-	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -24,8 +23,10 @@ func SetHeader(key, value string) Middleware {
 func RequestLogging(logger *slog.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log := fmt.Sprintf("Request received: %s %s", r.Method, r.URL.Path)
-			logger.Info(log)
+			logger.Info("Request received",
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+			)
 
 			next.ServeHTTP(w, r)
 		})

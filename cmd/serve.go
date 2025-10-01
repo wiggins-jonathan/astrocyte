@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log/slog"
 	"net/url"
 
 	"astrocyte/server"
@@ -13,7 +12,7 @@ import (
 
 // NewServeCmd creates the serve cmd for the CLI, binds its flags, & starts the
 // server
-func NewServeCmd(v *viper.Viper, l *slog.Logger) *cobra.Command {
+func NewServeCmd(v *viper.Viper) *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:     "serve",
 		Aliases: []string{"server"},
@@ -29,8 +28,10 @@ func NewServeCmd(v *viper.Viper, l *slog.Logger) *cobra.Command {
 				return fmt.Errorf("invalid base-url: %w", err)
 			}
 
+			logger := getLogger(cmd)
+
 			s := server.NewServer(
-				server.WithLogger(l),
+				server.WithLogger(logger),
 				server.WithPort(port),
 				server.WithBaseURL(baseURL),
 			)

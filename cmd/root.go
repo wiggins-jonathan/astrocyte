@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -12,6 +13,10 @@ import (
 )
 
 var version = "development"
+
+type contextKey string
+
+const loggerKey contextKey = "logger"
 
 // NewRootCmd creates the root command for the CLI & binds global & persistent
 // flags inherited by all subcommands
@@ -26,10 +31,37 @@ func NewRootCmd(v *viper.Viper) *cobra.Command {
 	rootCmd.PersistentFlags().String("log-level", "info", "set log level")
 	v.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
 
+	rootCmd.PersistentFlags().String("log-format", "text", "set log format")
+	v.BindPFlag("log-format", rootCmd.PersistentFlags().Lookup("log-format"))
+
 	// even though we don't use viper/cobra to parse for the config file path
 	// we still want to bind the flag to get correct usage().
 	rootCmd.PersistentFlags().StringP("config", "c", "", "path to the config file")
-	v.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		logLevel, err := cmd.Flags().GetString("log-level")
+		if err != nil {
+			return fmt.Errorf("Failed to parse log-level: %w", err)
+		}
+
+		logFormat, err := cmd.Flags().GetString("log-format")
+		if err != nil {
+			return fmt.Errorf("Failed to parse log-format: %w", err)
+		}
+
+		v.Set("log-level", logLevel)
+		v.Set("log-format", logFormat)
+
+		logger, err := NewLogger(WithLevel(logLevel), WithFormat(logFormat))
+		if err != nil {
+			return err
+		}
+
+		ctx := context.WithValue(cmd.Context(), loggerKey, logger)
+		cmd.SetContext(ctx)
+
+		return nil
+	}
 
 	return rootCmd
 }
@@ -46,18 +78,15 @@ func Execute() error {
 		return fmt.Errorf("Error initializing config: %w", err)
 	}
 
-	logLevel := viper.GetString("log-level")
-	logger := NewLogger(WithLogLevel(logLevel))
-
 	rootCmd := NewRootCmd(cfg)
 	rootCmd.SetVersionTemplate("{{.Version}}\n")
 
-	subCommands := []func(*viper.Viper, *slog.Logger) *cobra.Command{
+	subCommands := []func(*viper.Viper) *cobra.Command{
 		NewServeCmd,
 	}
 
 	for _, cmd := range subCommands {
-		rootCmd.AddCommand(cmd(cfg, logger))
+		rootCmd.AddCommand(cmd(cfg))
 	}
 
 	return rootCmd.Execute()
@@ -96,4 +125,14 @@ func getConfigFlag() (string, error) {
 	}
 
 	return filepath, nil
+}
+
+// getLogger uses context to pass the logger from the CLI to the log constructor
+// & then to the server middleware
+func getLogger(cmd *cobra.Command) *slog.Logger {
+	if logger, ok := cmd.Context().Value(loggerKey).(*slog.Logger); ok {
+		return logger
+	}
+	// Fallback: This should ideally only happen in tests or error cases
+	return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 }

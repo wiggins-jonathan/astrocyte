@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -12,9 +13,9 @@ type logHandler struct {
 	format         string
 }
 
-type LoggerOption func(*logHandler)
+type LoggerOption func(*logHandler) error
 
-func NewLogger(options ...LoggerOption) *slog.Logger {
+func NewLogger(options ...LoggerOption) (*slog.Logger, error) {
 	h := &logHandler{
 		output:         os.Stdout,
 		format:         "text",
@@ -22,7 +23,9 @@ func NewLogger(options ...LoggerOption) *slog.Logger {
 	}
 
 	for _, option := range options {
-		option(h)
+		if err := option(h); err != nil {
+			return nil, err
+		}
 	}
 
 	var handler slog.Handler
@@ -33,11 +36,11 @@ func NewLogger(options ...LoggerOption) *slog.Logger {
 		handler = slog.NewTextHandler(h.output, &h.handlerOptions)
 	}
 
-	return slog.New(handler)
+	return slog.New(handler), nil
 }
 
-func WithLogLevel(level string) LoggerOption {
-	return func(h *logHandler) {
+func WithLevel(level string) LoggerOption {
+	return func(h *logHandler) error {
 		switch level {
 		case "debug":
 			h.handlerOptions.Level = slog.LevelDebug
@@ -48,19 +51,31 @@ func WithLogLevel(level string) LoggerOption {
 		case "error":
 			h.handlerOptions.Level = slog.LevelError
 		default:
-			h.handlerOptions.Level = slog.LevelInfo
+			return fmt.Errorf("%s is not a valid log level", level)
 		}
+
+		return nil
 	}
 }
 
 func WithOutput(w io.Writer) LoggerOption {
-	return func(h *logHandler) {
+	return func(h *logHandler) error {
 		h.output = w
+		return nil
 	}
 }
 
 func WithFormat(format string) LoggerOption {
-	return func(h *logHandler) {
-		h.format = format
+	return func(h *logHandler) error {
+		switch format {
+		case "json":
+			h.format = "json"
+		case "text":
+			h.format = "text"
+		default:
+			return fmt.Errorf("%s is not a valid log format", format)
+		}
+
+		return nil
 	}
 }

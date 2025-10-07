@@ -1,5 +1,7 @@
 {
-  description = "Development environment";
+  description = "Astrocyte development environment";
+
+  nixConfig.bash-prompt-prefix = "(✶ ) ";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
